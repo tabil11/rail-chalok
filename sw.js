@@ -1,4 +1,4 @@
-﻿const CACHE = "rail-chalok-v1";
+const CACHE = "rail-chalok-v2";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {
@@ -23,7 +23,7 @@ self.addEventListener("fetch", (e) => {
   /* pages: network first so updates arrive, cache as fallback offline. everything else: cache first. */
   if (req.mode === "navigate") {
     e.respondWith(
-      fetch(req).then((res) => {
+      fetch(req, { cache: "no-store" }).then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put("index.html", copy));
         return res;
@@ -32,7 +32,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   e.respondWith(
-    caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+    caches.match(req).then((hit) => hit || fetch(req, { cache: "no-store" }).then((res) => {
       if (res && (res.ok || res.type === "opaque")) {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));
