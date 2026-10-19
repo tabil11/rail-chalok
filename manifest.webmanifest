@@ -1,17 +1,19 @@
-﻿{
+{
+  "id": "./",
   "name": "রেল চালক",
   "short_name": "রেল চালক",
   "description": "জাহানাবাদ, রূপসী বাংলা, রূপসা সহ বাংলাদেশের ট্রেন চালানোর গেম",
   "lang": "bn",
   "start_url": "./",
   "scope": "./",
-  "display": "fullscreen",
+  "display": "standalone",
   "display_override": ["fullscreen", "standalone"],
-  "orientation": "landscape",
+  "orientation": "any",
   "background_color": "#0d1819",
   "theme_color": "#0d1819",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

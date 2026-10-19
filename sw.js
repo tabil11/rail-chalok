@@ -1,4 +1,4 @@
-const CACHE = "rail-chalok-v2";
+const CACHE = "rail-chalok-v3";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

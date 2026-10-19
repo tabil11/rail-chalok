@@ -40,9 +40,8 @@ h1{font-family:var(--f-disp);font-weight:400;font-size:22px;margin:0}
 .strip .st.done{border-color:var(--ok)}
 .strip .st.next{border-color:var(--amber)}
 .strip .lbl{position:absolute;top:19px;font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
-.strip.dense .lbl{display:none}
-.strip.dense .lbl.cur,.strip.dense .lbl.edge{display:block}
-.strip .lbl.cur{color:var(--amber)}
+.strip .tick{position:absolute;width:1px;background:var(--line)}
+.strip .lbl.cur{color:var(--amber);font-weight:600}
 .strip .me{position:absolute;top:4px;width:13px;height:13px;margin-left:-6px;background:var(--amber);border-radius:3px;box-shadow:0 0 0 3px #f2b23333}
 .stage{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:1;min-height:140px;background:#000}
 canvas{display:block;width:100%;height:100%}
@@ -95,9 +94,10 @@ td.n,th.n{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
   header{display:none}
   .wrap{position:relative;gap:0;max-width:none}
   .stage{position:absolute;inset:0;border:0;border-radius:0;min-height:0}
-  .strip{position:absolute;top:4px;left:12px;right:12px;z-index:6;height:34px;margin:0;background:#0d1819b3;border-radius:6px;pointer-events:none}
+  .strip{position:absolute;top:4px;left:12px;right:12px;z-index:6;margin:0;background:#0d1819b3;border-radius:6px;pointer-events:none}
   .strip .lbl{font-size:10px;color:#d3dedb}
-  .panel{position:absolute;top:44px;left:0;right:0;z-index:6;grid-template-columns:repeat(5,auto);justify-content:space-between;gap:6px;pointer-events:none}
+  .strip .tick{background:#4c6b6d}
+  .panel{position:absolute;top:calc(var(--sh,34px) + 10px);left:0;right:0;z-index:6;grid-template-columns:repeat(5,auto);justify-content:space-between;gap:6px;pointer-events:none}
   .cell{background:#0d1819cc;padding:2px 8px}
   .cell small{font-size:10px}
   .big{font-size:18px}
@@ -108,7 +108,7 @@ td.n,th.n{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
   .ctl{position:absolute;left:0;right:0;bottom:8px;z-index:6;gap:8px}
   .ctl button{min-height:46px;background:#162627e6}
   #bBrake{background:#4a201cee}
-  #toast{top:110px}
+  #toast{top:calc(var(--sh,34px) + 76px)}
 }
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
@@ -139,6 +139,8 @@ td.n,th.n{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
         <div class="note">স্টেশনে হলুদ "থামুন" বোর্ডের কাছে গাড়ি থামান। দরজা খুলবে, যাত্রী উঠবে, তারপর ছাড়ার সংকেত পাবেন। স্টেশন ক্রম ও সময়সূচি পাবলিক সূত্র থেকে নেওয়া। দূরত্ব আনুমানিক। জাহানাবাদ ও রূপসার সময় সূত্র থেকে নেওয়া। রূপসী বাংলার মাঝের স্টেশন এবং যেসব রুটে "সময় আনুমানিক" লেখা, সেগুলোর সময় হিসাব করে বসানো। লম্বা রুটে পুরো যাত্রা ২০ থেকে ৩০ মিনিটের মতো লাগতে পারে, তাই P চেপে বিরতি নিতে পারেন। যাত্রার আগে বাংলাদেশ রেলওয়ের সূচি মিলিয়ে নিন।</div>
         <button class="primary" id="continue" hidden></button>
         <button class="primary" id="start">নতুন যাত্রা শুরু</button>
+        <button id="install" hidden>অ্যাপ হিসেবে ইনস্টল করুন</button>
+        <div class="note" id="installNote" hidden></div>
         <div class="note" id="saveNote">খেলা প্রতি কয়েক সেকেন্ডে নিজে সেভ হয়। এই ব্রাউজারেই আবার খুললে চালিয়ে যেতে পারবেন।</div>
       </div>
     </div>
@@ -244,12 +246,20 @@ function toggleLights(){
 }
 function buildStrip(){
   var s=$("#strip");s.innerHTML='<div class="line"></div>';
-  s.classList.toggle("dense",route.st.length>9);
+  /* every station name is shown; long routes stagger the names over two or three rows so none overlap */
+  var rows=route.st.length>16?3:route.st.length>8?2:1,sh=22+rows*12;
+  s.style.height=sh+"px";document.documentElement.style.setProperty("--sh",sh+"px");
   route.st.forEach(function(x,i){
     var d=document.createElement("div");d.className="st";d.id="sd"+i;d.style.left=(x[1]/route.total*100)+"%";s.appendChild(d);
     var l=document.createElement("div");l.className="lbl"+(i===0||i===route.st.length-1?" edge":"");l.id="sl"+i;l.style.left=(x[1]/route.total*100)+"%";l.textContent=x[0].replace(" (কমলাপুর)","").replace(" জংশন","");
     if(i===0)l.style.transform="none";
     if(i===route.st.length-1)l.style.transform="translateX(-100%)";
+    var row=i%rows;
+    l.style.top=(19+row*12)+"px";
+    if(row>0){
+      var tk=document.createElement("div");tk.className="tick";tk.style.left=(x[1]/route.total*100)+"%";tk.style.top="17px";tk.style.height=(row*12+2)+"px";
+      s.appendChild(tk);
+    }
     s.appendChild(l);
   });
   var m=document.createElement("div");m.className="me";m.id="me";s.appendChild(m);
@@ -946,6 +956,27 @@ $("#toMenu").onclick=function(){saveGame();$("#pause").hidden=true;$("#menu").hi
 addEventListener("visibilitychange",function(){if(document.hidden){if(mode==="play")togglePause();else saveGame()}});
 addEventListener("pagehide",saveGame);
 addEventListener("beforeunload",saveGame);
+
+/* ---------- install as an app (shown on the hosted site only) ---------- */
+var deferredInstall=null;
+var isStandalone=(window.matchMedia&&matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches)||navigator.standalone;
+window.addEventListener("beforeinstallprompt",function(e){
+  e.preventDefault();deferredInstall=e;
+  if(!isStandalone){$("#install").hidden=false;$("#installNote").hidden=true}
+});
+window.addEventListener("appinstalled",function(){deferredInstall=null;$("#install").hidden=true;$("#installNote").hidden=true});
+$("#install").onclick=function(){
+  if(!deferredInstall)return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(function(){deferredInstall=null;$("#install").hidden=true});
+};
+if(/github\.io$/.test(location.hostname)&&!isStandalone){
+  var inote=$("#installNote");
+  inote.hidden=false;
+  inote.textContent=/iphone|ipad|ipod/i.test(navigator.userAgent)
+    ?"iPhone: Safari-তে নিচের Share বোতাম থেকে Add to Home Screen চাপলে অ্যাপ হিসেবে বসবে।"
+    :"অ্যাপ হিসেবে বসাতে ব্রাউজারের তিন-ডট মেনু থেকে Install app বা Add to Home screen চাপুন। ইনস্টল বোতাম এলে ওপরে দেখা যাবে।";
+}
 
 /* ---------- loop ---------- */
 function frame(now){
