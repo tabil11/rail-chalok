@@ -40,6 +40,9 @@ h1{font-family:var(--f-disp);font-weight:400;font-size:22px;margin:0}
 .strip .st.done{border-color:var(--ok)}
 .strip .st.next{border-color:var(--amber)}
 .strip .lbl{position:absolute;top:19px;font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+.strip.dense .lbl{display:none}
+.strip.dense .lbl.cur,.strip.dense .lbl.edge{display:block}
+.strip .lbl.cur{color:var(--amber)}
 .strip .me{position:absolute;top:4px;width:13px;height:13px;margin-left:-6px;background:var(--amber);border-radius:3px;box-shadow:0 0 0 3px #f2b23333}
 .stage{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:1;min-height:140px;background:#000}
 canvas{display:block;width:100%;height:100%}
@@ -89,10 +92,12 @@ td.n,th.n{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
 /* short screens (phone held sideways): the view fills the screen and the readouts and buttons float over it */
 @media (max-height:520px){
   body{height:100dvh;padding-block:0}
-  header,.strip{display:none}
+  header{display:none}
   .wrap{position:relative;gap:0;max-width:none}
   .stage{position:absolute;inset:0;border:0;border-radius:0;min-height:0}
-  .panel{position:absolute;top:6px;left:0;right:0;z-index:6;grid-template-columns:repeat(5,auto);justify-content:space-between;gap:6px;pointer-events:none}
+  .strip{position:absolute;top:4px;left:12px;right:12px;z-index:6;height:34px;margin:0;background:#0d1819b3;border-radius:6px;pointer-events:none}
+  .strip .lbl{font-size:10px;color:#d3dedb}
+  .panel{position:absolute;top:44px;left:0;right:0;z-index:6;grid-template-columns:repeat(5,auto);justify-content:space-between;gap:6px;pointer-events:none}
   .cell{background:#0d1819cc;padding:2px 8px}
   .cell small{font-size:10px}
   .big{font-size:18px}
@@ -103,7 +108,7 @@ td.n,th.n{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
   .ctl{position:absolute;left:0;right:0;bottom:8px;z-index:6;gap:8px}
   .ctl button{min-height:46px;background:#162627e6}
   #bBrake{background:#4a201cee}
-  #toast{top:64px}
+  #toast{top:110px}
 }
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
@@ -239,9 +244,10 @@ function toggleLights(){
 }
 function buildStrip(){
   var s=$("#strip");s.innerHTML='<div class="line"></div>';
+  s.classList.toggle("dense",route.st.length>9);
   route.st.forEach(function(x,i){
     var d=document.createElement("div");d.className="st";d.id="sd"+i;d.style.left=(x[1]/route.total*100)+"%";s.appendChild(d);
-    var l=document.createElement("div");l.className="lbl";l.style.left=(x[1]/route.total*100)+"%";l.textContent=x[0].replace(" (কমলাপুর)","").replace(" জংশন","");
+    var l=document.createElement("div");l.className="lbl"+(i===0||i===route.st.length-1?" edge":"");l.id="sl"+i;l.style.left=(x[1]/route.total*100)+"%";l.textContent=x[0].replace(" (কমলাপুর)","").replace(" জংশন","");
     if(i===0)l.style.transform="none";
     if(i===route.st.length-1)l.style.transform="translateX(-100%)";
     s.appendChild(l);
@@ -401,6 +407,7 @@ function hud(){
   else if(dist>need*1.1+10){adv.className="adv-warn";adv.textContent="ব্রেকের প্রস্তুতি নিন"}
   else{adv.className="adv-stop";adv.textContent="এখনই ব্রেক করুন!"}
   route.st.forEach(function(_,i){var d=$("#sd"+i);if(d)d.className="st"+(i<s.ni||(i===s.ni&&s.stoppedAt===i)?" done":i===s.ni?" next":"")});
+  route.st.forEach(function(_,i){var lb2=$("#sl"+i);if(lb2)lb2.classList.toggle("cur",i===ni)});
   $("#me").style.left=(Math.max(0,Math.min(1,(s.pos/SCALE)/route.total))*100)+"%";
 }
 
